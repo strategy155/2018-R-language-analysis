@@ -1,0 +1,10 @@
+---
+title: "hw1"
+author: "Marc Sobolev"
+date: "06 02 2018"
+output: html_document
+---
+
+```{r}
+ 
+```
