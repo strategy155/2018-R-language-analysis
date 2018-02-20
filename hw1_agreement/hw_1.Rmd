@@ -1,21 +1,95 @@
 ---
-title: "hw_1"
+title: "HSE data analysis 1"
 author: "Marc Sobolev"
 date: "19 02 2018"
-output: html_document
+output: 
+  rmarkdown::html_document:
+    theme: lumen
+    highlight: pygments
 ---
 
 ```{r setup, include=FALSE}
-library('dplyr')
+library('tidyverse')
+library('irr')
+library('digest')
+set.seed.string <- function(input_string){
+  digest(input_string,"md5") %>% 
+    paste0("0x", .) %>% 
+    type.convert() %% .Machine$integer.max %>%
+    set.seed()
+} 
+set.seed.string("We will never be slaves!")
 zilo_class_df <- read.csv('hw1_1_zilo_class.csv')
+verbs_df <- read.csv('hw1_2_verbs.csv')
 ```
-
-```{r}
-zilo_class_df_stimulus_source <- zilo_class_df %>% 
-  dplyr::group_by(stimulus_source) %>% 
-  dplyr::summarise(n=n())
+### 1.1
+```{r 1.1}
+zilo_class_df %>% 
+  dplyr::distinct(stimulus) %>% 
+  nrow() -> count_of_unique_stimulus
+zilo_class_df %>% 
+  dplyr::mutate(
+    n = count_of_unique_stimulus
+  ) %>% 
+  dplyr::select(stimulus_source, n) %>% 
+  dplyr::as_tibble() -> zilo_class_df_distinct_stimulus
+zilo_class_df_distinct_stimulus
 ```
+### 1.2
+```{r 1.2}
+zilo_class_df %>% 
+  dplyr::select(s_id, stimulus, class) %>% 
+  tidyr::spread(key = s_id, value = class) -> zilo_class_df_irr_format_with_stimulus
+zilo_class_df_irr_format <- zilo_class_df_irr_format_with_stimulus[,-1]
+irr::agree(zilo_class_df_irr_format)
+```
+### 1.3
+```{r 1.3}
+zilo_class_df_two_speakers <-  zilo_class_df_irr_format[c(7, 11)]
+irr::kappa2(zilo_class_df_two_speakers)
+```
+### 1.4
+```{r 1.4}
+irr::kappam.fleiss(zilo_class_df_irr_format)
+```
+### 1.5
+В зиловском диалекте андийского языка существует два класса для неодушевленных предметов. В 2017 году был проведен эксперимент, чтобы проверить, наличие вариативности в отнесению к тому или иному классу заимствованой и исконной лексики.В датасете всего 89 уникальных слов и два вида стимулов. Процент полного согласия разметчиков равен 76%, а количество точных совпадений -- 68 слов из 89. Значение каппы Коэна (меры согласования для двух разметчиков) для разметчиков под номером 7 и 11 равно 0.865, что по интерпретации [Landis, Koch 1977] значит "almost perfect agreement". Вполне логично, что каппа Фляйса примерно равна каппе Коэна для двух случайно выбранных разметчиков, а именно 0.858.
 
-```{r}
-zilo_class_df_irr_format 
+### 2.1
+```{r 2.1}
+verbs_df %>% 
+  dplyr::distinct(SubjectCode) %>% 
+  base::nrow() %>% 
+  dplyr::tibble(n = .)
+```
+### 2.2
+```{r 2.2}
+verbs_df %>% 
+  dplyr::select(Gender, WordType, GivenScore) %>% 
+  dplyr::group_by(Gender, WordType) %>% 
+  dplyr::summarise(mean = base::mean(GivenScore))
+```
+### 2.3
+```{r 2.3}
+verbs_df %>% 
+  dplyr::select(SubjectCode, Stimulus, GivenScore) %>% 
+  tidyr::spread(SubjectCode, GivenScore) %>% 
+  .[,-1] -> verbs_df_subject_code_given_score_spreaded
+irr::agree(verbs_df_subject_code_given_score_spreaded)
+```
+### 2.4
+```{r 2.4}
+irr::kappam.fleiss(verbs_df_subject_code_given_score_spreaded)
+```
+### 2.5
+```{r 2.5}
+irr::icc(verbs_df_subject_code_given_score_spreaded, model = "twoway", type = "agreement")
+```
+### 2.6
+```{r 2.6}
+stats::cor(verbs_df_subject_code_given_score_spreaded, method = 'kendall') %>% 
+  dplyr::as_tibble() %>% 
+  dplyr::mutate(min = min(.), max = max(.)) %>% 
+  dplyr::select(min, max) %>% 
+  dplyr::distinct()
 ```
