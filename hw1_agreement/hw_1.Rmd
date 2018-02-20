@@ -1,0 +1,21 @@
+---
+title: "hw_1"
+author: "Marc Sobolev"
+date: "19 02 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library('dplyr')
+zilo_class_df <- read.csv('hw1_1_zilo_class.csv')
+```
+
+```{r}
+zilo_class_df_stimulus_source <- zilo_class_df %>% 
+  dplyr::group_by(stimulus_source) %>% 
+  dplyr::summarise(n=n())
+```
+
+```{r}
+zilo_class_df_irr_format 
+```
