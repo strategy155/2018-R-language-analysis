@@ -10,8 +10,8 @@ output:
 
 ```{r setup, include=FALSE}
 library('tidyverse')
-library('irr')
 library('digest')
+library('mosaic')
 set.seed.string <- function(input_string){
   digest(input_string,"md5") %>% 
     paste0("0x", .) %>% 
@@ -22,3 +22,16 @@ set.seed.string("We will never be slaves!")
 binomial_df <- read.csv('hw2_binomial.csv')
 ```
 
+```{r}
+stats::binom.test(x = binomial_df$k, n = binomial_df$n, p = binomial_df$prior)
+```
+```{r}
+base::set.seed(42)
+mosaic::do(1000)* 
+  base::sum(
+    base::sample(x = 1:0, size = binomial_df$n, replace = TRUE, prob = c(binomial_df$prior, 1 - binomial_df$prior))
+  ) -> simulations
+simulations %>% 
+  dplyr::mutate(greater = sum >= binomial_df$k) %>% 
+  dplyr::count(greater)
+```
