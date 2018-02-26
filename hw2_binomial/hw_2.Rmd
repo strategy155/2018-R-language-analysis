@@ -19,7 +19,6 @@ set.seed.string <- function(input_string){
     set.seed()
 } 
 set.seed.string("We will never be slaves!")
-zilo_class_df <- read.csv('hw1_1_zilo_class.csv')
-verbs_df <- read.csv('hw1_2_verbs.csv')
+binomial_df <- read.csv('hw2_binomial.csv')
 ```
 
