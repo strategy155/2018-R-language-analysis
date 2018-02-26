@@ -1,0 +1,25 @@
+---
+title: "HSE data analysis 2"
+author: "Marc Sobolev"
+date: "26 02 2018"
+output: 
+  rmarkdown::html_document:
+    theme: lumen
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+library('tidyverse')
+library('irr')
+library('digest')
+set.seed.string <- function(input_string){
+  digest(input_string,"md5") %>% 
+    paste0("0x", .) %>% 
+    type.convert() %% .Machine$integer.max %>%
+    set.seed()
+} 
+set.seed.string("We will never be slaves!")
+zilo_class_df <- read.csv('hw1_1_zilo_class.csv')
+verbs_df <- read.csv('hw1_2_verbs.csv')
+```
+
