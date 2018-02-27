@@ -19,19 +19,44 @@ set.seed.string <- function(input_string){
     set.seed()
 } 
 set.seed.string("We will never be slaves!")
+```
+```{r download_dataset}
 binomial_df <- read.csv('hw2_binomial.csv')
 ```
-
-```{r}
-stats::binom.test(x = binomial_df$k, n = binomial_df$n, p = binomial_df$prior)
+### 1.1
+```{r 1.1}
+binom_test_results <- stats::binom.test(x = binomial_df$k, n = binomial_df$n, p = binomial_df$prior)
+binom_test_results
 ```
-```{r}
+### 1.2
+```{r 1.2, warning=FALSE}
 base::set.seed(42)
 mosaic::do(1000)* 
   base::sum(
-    base::sample(x = 1:0, size = binomial_df$n, replace = TRUE, prob = c(binomial_df$prior, 1 - binomial_df$prior))
+    base::sample(x = 1:0, size = binomial_df$n, replace = TRUE, prob = c(binomial_df$prior, 1-binomial_df$prior))
   ) -> simulations
 simulations %>% 
   dplyr::mutate(greater = sum >= binomial_df$k) %>% 
-  dplyr::count(greater)
+  dplyr::count(greater) -> sim_results
+sim_results
 ```
+### 1.3
+```{r 1.3}
+alpha_prior <- binomial_df$prior * binomial_df$n
+beta_prior <- (1-binomial_df$prior) * binomial_df$n 
+alpha_posterior <- alpha_prior + binomial_df$k
+beta_posterior <- beta_prior + (binomial_df$n - binomial_df$k)
+aposterior <-  alpha_posterior / (alpha_posterior+beta_posterior)
+aposterior
+```
+### 1.4
+```{r 1.4}
+non_informative_alpha_prior <- 1
+non_informative_beta_prior <- 1
+alpha_posterior <- non_informative_alpha_prior + binomial_df$k
+beta_posterior <- non_informative_beta_prior + (binomial_df$n - binomial_df$k)
+new_aposterior <-  alpha_posterior / (alpha_posterior+beta_posterior)
+new_aposterior
+```
+### 1.5
+Был проведён эксперимент, у которого было два возможных исхода -- успех и неудача. В нашем датасете было проведено `r binomial_df$n` экспериментов, из них `r binomial_df$k` закончилось успехом. Теоретическая вероятность в этом эксперименте была равна `r binomial_df$prior`. Для начала мы провели простой биномиальный тест. С p-value равной `r binom_test_results$p.value` мы отвергаем нулевую гипотезу, которая гласит, что реальная вероятность равна теоретической. Пускай наше значение и попадает в доверительный интервал [`r binom_test_results$conf.int`], очевидно что процедура вычисления доверительного интервала не зависит от биномиального теста (хотя их значения естественно скореллированы) и в этом случае это вопрос вкуса и надёжности вычисленного доверительного интервала и p-value. Далее мы использовали метод Монте-Карло и симулировали 1000 серий экспериментов исходной длины с вероятностью из исходных данных. Только в `r sim_results$n[1]` из 1000 симуляций количество удач было меньше количества удач реального эксперимента. Можно сделать выводы. Теперь подойдём с байесовской стороны. Для начала используем нашу теоретическую вероятность удачи, как априорную. Тогда результатом апостериорной вероятности удачи будет `r aposterior`. Можно заметить что апостериорная вероятность уменьшилась по отношению к априорной, что приближает нас и к вероятности, спрогнозированой биномиальным тестом, (`r binom_test_results$estimate`) так и соответствует результатам ММК симуляции (предположительная вероятность почти всегда даёт большее количество удач, чем выходящая из нашего исходного эксперимента). Теперь попробуем использовать неинформативную априорную вероятность. Результатом ожидаемо стала вероятность, приближённая к предположенной биномиальным тестом -- `r new_aposterior`. 
