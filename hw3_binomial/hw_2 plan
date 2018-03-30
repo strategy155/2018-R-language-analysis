@@ -15,8 +15,8 @@ do(n)
  
  1.3
  
- a_prior = prior * k
- b_prior = prior * n-k
+ a_prior = prior * n
+ b_prior = 1-prior * n
  
  a_post = a_prior + a_data
  b_post = b_prior + b_data
